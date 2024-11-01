@@ -2,7 +2,16 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { Undo, Redo, Bold, Italic, Strikethrough, Brain } from 'lucide-vue-next'
+import {
+  Undo,
+  Redo,
+  Bold,
+  Italic,
+  Strikethrough,
+  Brain,
+  CircleFadingArrowUp as Improve,
+  TextSearch as Complete,
+} from 'lucide-vue-next'
 import { getGroqChatCompletion } from '@/composables/use-groq'
 import { TransitionGroup } from 'vue'
 import { Loader2 } from 'lucide-vue-next'
@@ -162,15 +171,15 @@ const isChatLoading = ref(false)
 
 const sendMessage = async (text: string, selectedText: string = '') => {
   if (!text.trim()) return
-  
+
   try {
     isChatLoading.value = true
     chatMessages.value.push({ role: 'user', content: text })
-    
+
     // Get editor context
     const editorContent = editor.value?.getHTML() || ''
     const currentSelection = selectedText || getSelectedText()
-    
+
     const messages = [
       {
         role: 'system',
@@ -208,15 +217,16 @@ const sendMessage = async (text: string, selectedText: string = '') => {
 
 // Add some helpful quick prompts for the chat
 const quickPrompts = [
-  'What\'s the main idea of this text?',
+  "What's the main idea of this text?",
   'How can I make this clearer?',
   'Suggest a better conclusion',
   'Check for consistency',
 ]
 
 const quickActions = [
-  { 
-    label: 'Summarize', 
+  {
+    label: 'Summarize',
+    icon: Brain,
     handler: async () => {
       if (!hasSelection.value || state.value.isStreaming) return
 
@@ -238,7 +248,8 @@ const quickActions = [
         const messages = [
           {
             role: 'system',
-            content: 'You are a helpful writing assistant. Summarize the given text while maintaining its core meaning. Keep your response focused and concise.',
+            content:
+              'You are a helpful writing assistant. Summarize the given text while maintaining its core meaning. Keep your response focused and concise.',
           },
           {
             role: 'user',
@@ -257,17 +268,19 @@ const quickActions = [
           }
         }
       } catch (error) {
-        state.value.error = error instanceof Error ? error.message : 'An unknown error occurred'
+        state.value.error =
+          error instanceof Error ? error.message : 'An unknown error occurred'
         console.error('Error streaming:', error)
       } finally {
         state.value.isStreaming = false
         editorState.value.selectionRange = null
         state.value.insertedLength = 0
       }
-    }
+    },
   },
-  { 
+  {
     label: 'Improve',
+    icon: Improve,
     handler: async () => {
       if (!hasSelection.value || state.value.isStreaming) return
 
@@ -289,7 +302,8 @@ const quickActions = [
         const messages = [
           {
             role: 'system',
-            content: 'You are a helpful writing assistant. Improve the given text while maintaining its core meaning. Make it more clear, concise, and engaging.',
+            content:
+              'You are a helpful writing assistant. Improve the given text while maintaining its core meaning. Make it more clear, concise, and engaging.',
           },
           {
             role: 'user',
@@ -308,17 +322,19 @@ const quickActions = [
           }
         }
       } catch (error) {
-        state.value.error = error instanceof Error ? error.message : 'An unknown error occurred'
+        state.value.error =
+          error instanceof Error ? error.message : 'An unknown error occurred'
         console.error('Error streaming:', error)
       } finally {
         state.value.isStreaming = false
         editorState.value.selectionRange = null
         state.value.insertedLength = 0
       }
-    }
+    },
   },
-  { 
+  {
     label: 'Complete',
+    icon: Complete,
     handler: async () => {
       if (!hasSelection.value || state.value.isStreaming) return
 
@@ -340,7 +356,8 @@ const quickActions = [
         const messages = [
           {
             role: 'system',
-            content: 'You are a helpful writing assistant. Complete the given text in a natural and coherent way that follows from the existing content.',
+            content:
+              'You are a helpful writing assistant. Complete the given text in a natural and coherent way that follows from the existing content.',
           },
           {
             role: 'user',
@@ -359,15 +376,16 @@ const quickActions = [
           }
         }
       } catch (error) {
-        state.value.error = error instanceof Error ? error.message : 'An unknown error occurred'
+        state.value.error =
+          error instanceof Error ? error.message : 'An unknown error occurred'
         console.error('Error streaming:', error)
       } finally {
         state.value.isStreaming = false
         editorState.value.selectionRange = null
         state.value.insertedLength = 0
       }
-    }
-  }
+    },
+  },
 ]
 
 const handleQuickAction = (prompt: string) => {
@@ -380,7 +398,9 @@ const handleQuickAction = (prompt: string) => {
 <template>
   <div class="flex gap-4">
     <!-- Editor Column -->
-    <div class="w-1/2 rounded-lg border border-secondaryWhite/10 bg-secondaryBlack/50 p-0 text-primaryWhite shadow-xl shadow-primaryWhite/5 backdrop-blur-sm transition-all duration-200">
+    <div
+      class="w-1/2 rounded-lg border border-secondaryWhite/10 bg-secondaryBlack/50 p-0 text-primaryWhite shadow-xl shadow-primaryWhite/5 backdrop-blur-sm transition-all duration-200"
+    >
       <div id="tiptap-toolbar" class="group">
         <div class="flex gap-2">
           <button
@@ -391,21 +411,26 @@ const handleQuickAction = (prompt: string) => {
             :disabled="!hasSelection || state.isStreaming"
           >
             <div class="relative z-10 flex items-center gap-2">
-              <Brain class="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+              <component
+                :is="action.icon"
+                class="h-4 w-4 transition-transform duration-200 group-hover:scale-110"
+              />
               {{ action.label }}
-              <Loader2 
-                v-if="state.isStreaming" 
+              <Loader2
+                v-if="state.isStreaming"
                 class="ml-2 h-4 w-4 animate-spin"
               />
             </div>
-            <div class="absolute inset-0 -z-0 rounded-md bg-gradient-to-br from-blue/80 via-blue to-secondaryWhite/20 opacity-0 blur transition-opacity duration-200 group-hover:opacity-100" />
+            <div
+              class="absolute inset-0 -z-0 rounded-md bg-gradient-to-br from-blue/80 via-blue to-secondaryWhite/20 opacity-0 blur transition-opacity duration-200 group-hover:opacity-100"
+            />
           </button>
         </div>
       </div>
-      
+
       <div class="relative p-4">
-        <div 
-          v-if="state.isStreaming" 
+        <div
+          v-if="state.isStreaming"
           class="absolute inset-0 z-10 flex items-center justify-center bg-secondaryBlack/50 backdrop-blur-sm"
         >
           <div class="flex items-center gap-2 rounded-lg bg-blue/10 px-4 py-2">
@@ -418,17 +443,23 @@ const handleQuickAction = (prompt: string) => {
     </div>
 
     <!-- Chat Column -->
-    <div class="w-1/2 rounded-lg border border-secondaryWhite/10 bg-secondaryBlack/50 p-4 text-primaryWhite shadow-xl shadow-primaryWhite/5 backdrop-blur-sm transition-all duration-200">
+    <div
+      class="w-1/2 rounded-lg border border-secondaryWhite/10 bg-secondaryBlack/50 p-4 text-primaryWhite shadow-xl shadow-primaryWhite/5 backdrop-blur-sm transition-all duration-200"
+    >
       <div class="flex h-full flex-col">
         <!-- Context Indicator -->
-        <div class="mb-4 overflow-hidden rounded-lg bg-secondaryWhite/5 p-3 text-sm text-secondaryWhite/70">
+        <div
+          class="mb-4 overflow-hidden rounded-lg bg-secondaryWhite/5 p-3 text-sm text-secondaryWhite/70"
+        >
           <transition name="slide" mode="out-in">
             <p v-if="hasSelection" :key="'selection'">
-              <span class="font-medium text-blue">Selected text:</span> 
-              {{ getSelectedText().slice(0, 50) }}{{ getSelectedText().length > 50 ? '...' : '' }}
+              <span class="font-medium text-blue">Selected text:</span>
+              {{ getSelectedText().slice(0, 50)
+              }}{{ getSelectedText().length > 50 ? '...' : '' }}
             </p>
             <p v-else :key="'full'">
-              <span class="font-medium text-blue">Full document</span> context enabled
+              <span class="font-medium text-blue">Full document</span> context
+              enabled
             </p>
           </transition>
         </div>
@@ -447,11 +478,7 @@ const handleQuickAction = (prompt: string) => {
 
         <!-- Chat Messages -->
         <div class="flex-1 space-y-4 overflow-y-auto px-2">
-          <TransitionGroup 
-            name="message" 
-            tag="div" 
-            class="space-y-4"
-          >
+          <TransitionGroup name="message" tag="div" class="space-y-4">
             <div
               v-for="(message, index) in chatMessages"
               :key="index"
@@ -459,7 +486,7 @@ const handleQuickAction = (prompt: string) => {
                 'message rounded-lg p-3 transition-all duration-300',
                 message.role === 'user'
                   ? 'user-message ml-auto max-w-[80%]'
-                  : 'assistant-message max-w-[80%]'
+                  : 'assistant-message max-w-[80%]',
               ]"
             >
               <p class="whitespace-pre-wrap">{{ message.content }}</p>
@@ -473,7 +500,11 @@ const handleQuickAction = (prompt: string) => {
             <input
               v-model="newMessage"
               type="text"
-              :placeholder="hasSelection ? 'Ask about the selected text...' : 'Ask about your document...'"
+              :placeholder="
+                hasSelection
+                  ? 'Ask about the selected text...'
+                  : 'Ask about your document...'
+              "
               class="chat-input"
               :disabled="isChatLoading"
               @keyup.enter="sendMessage(newMessage)"
@@ -489,7 +520,9 @@ const handleQuickAction = (prompt: string) => {
                 </span>
                 <span v-else>Send</span>
               </div>
-              <div class="absolute inset-0 -z-0 rounded-md bg-gradient-to-br from-blue/80 via-blue to-secondaryWhite/20 opacity-0 blur transition-opacity duration-200 group-hover:opacity-100" />
+              <div
+                class="absolute inset-0 -z-0 rounded-md bg-gradient-to-br from-blue/80 via-blue to-secondaryWhite/20 opacity-0 blur transition-opacity duration-200 group-hover:opacity-100"
+              />
             </button>
           </div>
         </div>
@@ -500,7 +533,7 @@ const handleQuickAction = (prompt: string) => {
 
 <style>
 #tiptap-toolbar {
-  @apply sticky top-0 z-40 flex w-full items-center gap-2 px-4 border-b border-secondaryWhite/10 bg-secondaryBlack py-2;
+  @apply sticky top-0 z-40 flex w-full items-center gap-2 border-b border-secondaryWhite/10 bg-secondaryBlack px-4 py-2;
 }
 #tiptap-toolbar button {
   @apply inline-flex items-center gap-2.5 rounded-md p-2 text-sm text-primaryWhite duration-100;
@@ -673,11 +706,11 @@ const handleQuickAction = (prompt: string) => {
 
 /* Message styling */
 .user-message {
-  @apply bg-blue/10 animate-fadeIn;
+  @apply animate-fadeIn bg-blue/10;
 }
 
 .assistant-message {
-  @apply bg-secondaryWhite/5 animate-fadeIn;
+  @apply animate-fadeIn bg-secondaryWhite/5;
 }
 
 /* Custom animations */
