@@ -31,3 +31,5 @@ coverage
 .env.production
 
 *.tsbuildinfo
+.yarn
+.yarnrc.yml
