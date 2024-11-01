@@ -380,7 +380,7 @@ const handleQuickAction = (prompt: string) => {
 <template>
   <div class="flex gap-4">
     <!-- Editor Column -->
-    <div class="w-1/2 rounded-lg border border-secondaryWhite/10 bg-secondaryBlack/50 p-4 py-0 text-primaryWhite shadow-xl shadow-primaryWhite/5 backdrop-blur-sm transition-all duration-200">
+    <div class="w-1/2 rounded-lg border border-secondaryWhite/10 bg-secondaryBlack/50 p-0 text-primaryWhite shadow-xl shadow-primaryWhite/5 backdrop-blur-sm transition-all duration-200">
       <div id="tiptap-toolbar" class="group">
         <div class="flex gap-2">
           <button
@@ -500,7 +500,7 @@ const handleQuickAction = (prompt: string) => {
 
 <style>
 #tiptap-toolbar {
-  @apply sticky top-0 z-40 flex w-full items-center gap-2 border-b border-secondaryWhite/10 bg-secondaryBlack py-2;
+  @apply sticky top-0 z-40 flex w-full items-center gap-2 px-4 border-b border-secondaryWhite/10 bg-secondaryBlack py-2;
 }
 #tiptap-toolbar button {
   @apply inline-flex items-center gap-2.5 rounded-md p-2 text-sm text-primaryWhite duration-100;
